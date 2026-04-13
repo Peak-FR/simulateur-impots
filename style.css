@@ -1,0 +1,945 @@
+/* =============================================================================
+   STYLE.CSS — Simulateur Impôt 2026
+   Design : premium, épuré, responsive
+   Palette : bleu marine profond + accents dorés + neutres chauds
+============================================================================= */
+
+/* -----------------------------------------------------------------------------
+   1. VARIABLES & RESET
+----------------------------------------------------------------------------- */
+
+:root {
+  --bleu-profond:   #0f2644;
+  --bleu-moyen:     #1a3a6c;
+  --bleu-clair:     #2563eb;
+  --bleu-doux:      #dbeafe;
+  --or:             #c9a84c;
+  --or-clair:       #fef3c7;
+  --vert:           #16a34a;
+  --vert-clair:     #dcfce7;
+  --rouge:          #dc2626;
+  --rouge-clair:    #fee2e2;
+  --orange:         #ea580c;
+  --orange-clair:   #fff7ed;
+  --gris-100:       #f8fafc;
+  --gris-200:       #f1f5f9;
+  --gris-300:       #e2e8f0;
+  --gris-400:       #cbd5e1;
+  --gris-500:       #94a3b8;
+  --gris-700:       #334155;
+  --gris-900:       #0f172a;
+  --blanc:          #ffffff;
+  --radius-sm:      6px;
+  --radius-md:      12px;
+  --radius-lg:      20px;
+  --radius-xl:      28px;
+  --shadow-sm:      0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
+  --shadow-md:      0 4px 16px rgba(0,0,0,.10), 0 2px 6px rgba(0,0,0,.07);
+  --shadow-lg:      0 12px 40px rgba(0,0,0,.14), 0 4px 12px rgba(0,0,0,.08);
+  --transition:     .18s ease;
+  --font-body:      'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono:      'JetBrains Mono', 'Fira Code', monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: 16px; scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-body);
+  background: #1b2f5e;
+  min-height: 100vh;
+  color: var(--gris-900);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* -----------------------------------------------------------------------------
+   2. LAYOUT PRINCIPAL
+----------------------------------------------------------------------------- */
+
+.app-wrapper {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 24px 16px 60px;
+}
+
+/* -----------------------------------------------------------------------------
+   3. EN-TÊTE
+----------------------------------------------------------------------------- */
+
+.app-header {
+  text-align: center;
+  padding: 40px 20px 28px;
+  color: var(--blanc);
+}
+
+.app-header h1 {
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  font-weight: 800;
+  letter-spacing: -.02em;
+  color: var(--blanc);
+  text-shadow: 0 2px 12px rgba(0,0,0,.3);
+}
+
+.app-subtitle {
+  margin-top: 8px;
+  font-size: .9rem;
+  color: rgba(255,255,255,.65);
+  font-weight: 400;
+}
+
+/* -----------------------------------------------------------------------------
+   4. BARRE DE PROGRESSION
+----------------------------------------------------------------------------- */
+
+.progress-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.progress-track {
+  flex: 1;
+  height: 6px;
+  background: rgba(255,255,255,.2);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--or), #fbbf24);
+  border-radius: 99px;
+  transition: width .4s cubic-bezier(.4,0,.2,1);
+}
+
+.progress-label {
+  font-size: .8rem;
+  color: rgba(255,255,255,.7);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* -----------------------------------------------------------------------------
+   5. CARTE / ÉTAPE
+----------------------------------------------------------------------------- */
+
+.etape {
+  background: var(--blanc);
+  border-radius: var(--radius-xl);
+  padding: 36px 40px;
+  box-shadow: var(--shadow-lg);
+  animation: fadeSlide 1s ease both;
+}
+
+@keyframes fadeSlide {
+  from { opacity: 0; transform: translateY(-14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.hidden { display: none !important; }
+
+.etape-titre {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--bleu-profond);
+  margin-bottom: 28px;
+  padding-bottom: 14px;
+  border-bottom: 2px solid var(--gris-200);
+  letter-spacing: -.01em;
+}
+
+/* -----------------------------------------------------------------------------
+   6. FIELDSETS & BLOCS DÉCLARANTS
+----------------------------------------------------------------------------- */
+
+.declarant-bloc {
+  border: 1.5px solid var(--gris-300);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  margin-bottom: 24px;
+  background: var(--gris-100);
+}
+
+.declarant-bloc legend {
+  font-weight: 700;
+  font-size: .95rem;
+  color: var(--bleu-moyen);
+  padding: 0 8px;
+  letter-spacing: .01em;
+}
+
+/* -----------------------------------------------------------------------------
+   7. GROUPES DE CHAMPS
+----------------------------------------------------------------------------- */
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 600px) {
+  .field-row { grid-template-columns: 1fr; }
+  .etape { padding: 24px 20px; }
+}
+
+.field-label {
+  font-size: .85rem;
+  font-weight: 600;
+  color: var(--gris-700);
+  letter-spacing: .01em;
+}
+
+label {
+  font-size: .88rem;
+  color: var(--gris-700);
+  font-weight: 500;
+}
+
+/* -----------------------------------------------------------------------------
+   8. INPUTS
+----------------------------------------------------------------------------- */
+
+input[type="number"],
+input[type="text"],
+select {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid var(--gris-300);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: .92rem;
+  color: var(--gris-900);
+  background: var(--blanc);
+  transition: border-color var(--transition), box-shadow var(--transition);
+  outline: none;
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+input[type="number"]:focus,
+input[type="text"]:focus,
+select:focus {
+  border-color: var(--bleu-clair);
+  box-shadow: 0 0 0 3px rgba(37,99,235,.15);
+}
+
+input[type="number"]::placeholder { color: var(--gris-400); }
+
+select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+
+.input-euro {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-euro input {
+  padding-right: 32px;
+  width: 100%;
+}
+
+.input-euro::after {
+  content: "€";
+  position: absolute;
+  right: 10px;
+  color: var(--text-muted, #888);
+  font-size: 0.95rem;
+  pointer-events: none;
+}
+
+/* -----------------------------------------------------------------------------
+   9. RADIO GROUPS
+----------------------------------------------------------------------------- */
+
+.radio-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.radio-group.vertical {
+  flex-direction: column;
+  gap: 12px;
+}
+
+.radio-group label {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  cursor: pointer;
+  padding: 9px 14px;
+  border: 1.5px solid var(--gris-300);
+  border-radius: var(--radius-sm);
+  background: var(--blanc);
+  transition: border-color var(--transition), background var(--transition);
+  font-size: .88rem;
+  line-height: 1.4;
+}
+
+.radio-group label:hover {
+  border-color: var(--bleu-clair);
+  background: var(--bleu-doux);
+}
+
+.radio-group input[type="radio"] { accent-color: var(--bleu-clair); flex-shrink: 0; margin-top: 2px; }
+
+.radio-group input[type="radio"]:checked + * { color: var(--bleu-moyen); font-weight: 600; }
+
+.radio-group label:has(input:checked) {
+  border-color: var(--bleu-clair);
+  background: var(--bleu-doux);
+}
+
+/* -----------------------------------------------------------------------------
+   10. SOUS-BLOCS & DETAILS
+----------------------------------------------------------------------------- */
+
+.sous-bloc {
+  margin-top: 4px;
+  margin-bottom: 16px;
+  padding: 20px;
+  background: var(--blanc);
+  border: 1.5px solid var(--gris-300);
+  border-radius: var(--radius-md);
+  animation: fadeSlide .5s ease both;
+}
+
+.sous-bloc-details,
+.credits-section {
+  border: 1.5px solid var(--gris-300);
+  border-radius: var(--radius-md);
+  margin-bottom: 14px;
+  overflow: hidden;
+  background: var(--blanc);
+}
+
+.sous-bloc-details summary,
+.credits-section summary {
+  padding: 14px 18px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: .92rem;
+  color: var(--bleu-moyen);
+  user-select: none;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--gris-100);
+  transition: background var(--transition);
+}
+
+.sous-bloc-details summary::-webkit-details-marker,
+.credits-section summary::-webkit-details-marker { display: none; }
+
+.sous-bloc-details summary::before,
+.credits-section summary::before {
+  content: "▶";
+  font-size: .65rem;
+  transition: transform var(--transition);
+  color: var(--gris-500);
+}
+
+details[open] > summary::before { transform: rotate(90deg); }
+
+.sous-bloc-details summary:hover,
+.credits-section summary:hover { background: var(--bleu-doux); }
+
+.sous-bloc-details > *:not(summary),
+.credits-section > *:not(summary) {
+  padding: 20px;
+}
+
+/* -----------------------------------------------------------------------------
+   11. INFO BOX
+----------------------------------------------------------------------------- */
+
+.info-box {
+  background: var(--or-clair);
+  border: 1.5px solid var(--or);
+  border-radius: var(--radius-md);
+  padding: 14px 18px;
+  font-size: .88rem;
+  color: #7c5a00;
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+.hint {
+  font-size: .82rem;
+  color: var(--gris-500);
+  font-style: italic;
+  margin-bottom: 12px;
+}
+
+/* -----------------------------------------------------------------------------
+   12. BOUTONS DE NAVIGATION
+----------------------------------------------------------------------------- */
+
+.nav-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 32px;
+  padding-top: 20px;
+  border-top: 1.5px solid var(--gris-200);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 11px 24px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: .92rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all var(--transition);
+  letter-spacing: .01em;
+  white-space: nowrap;
+}
+
+.btn-primary {
+  background: var(--bleu-moyen);
+  color: var(--blanc);
+  box-shadow: 0 2px 8px rgba(37,99,235,.35);
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(37,99,235,.45);
+}
+
+.btn-primary:active { transform: translateY(0); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--gris-700);
+  border: 1.5px solid var(--gris-300);
+}
+
+.btn-ghost:hover {
+  background: var(--gris-200);
+  border-color: var(--gris-400);
+}
+
+.btn-secondary {
+  background: var(--gris-200);
+  color: var(--bleu-moyen);
+  border: 1.5px solid var(--gris-300);
+}
+
+.btn-secondary:hover { background: var(--bleu-doux); border-color: var(--bleu-clair); }
+
+.btn-danger {
+  background: var(--rouge-clair);
+  color: var(--rouge);
+  border: 1.5px solid #fca5a5;
+}
+
+.btn-danger:hover { background: #fecaca; }
+
+/* -----------------------------------------------------------------------------
+   13. ENFANTS — ITEMS DYNAMIQUES
+----------------------------------------------------------------------------- */
+
+.enfant-item {
+  background: var(--blanc);
+  border: 1.5px solid var(--gris-300);
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
+  margin-bottom: 12px;
+  position: relative;
+  animation: fadeSlide .5s ease both;
+}
+
+.enfant-item h4 {
+  font-size: .9rem;
+  font-weight: 700;
+  color: var(--bleu-moyen);
+  margin-bottom: 12px;
+}
+
+.btn-remove {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: var(--rouge-clair);
+  color: var(--rouge);
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 4px 10px;
+  font-size: .78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--transition);
+}
+
+.btn-remove:hover { background: #fecaca; }
+
+/* -----------------------------------------------------------------------------
+   14. ZONE RÉSULTATS — CONTENEUR
+----------------------------------------------------------------------------- */
+
+.zone-resultats {
+  margin-top: 8px;
+}
+
+.hint-resultats {
+  text-align: center;
+  color: var(--gris-500);
+  padding: 40px 20px;
+  font-size: .92rem;
+}
+
+.top-buttons { margin-top: 0; padding-top: 0; border-top: none; }
+.bottom-buttons { margin-top: 24px; }
+
+/* -----------------------------------------------------------------------------
+   15. BLOC RÉSULTAT COMMUN
+----------------------------------------------------------------------------- */
+
+.resultat-bloc {
+  animation: fadeSlide .3s ease both;
+}
+
+.resultat-bloc h2 {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--bleu-profond);
+  margin-bottom: 22px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--gris-200);
+}
+
+.resultats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.resultats-grid.compact {
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+}
+
+.carte-resultat {
+  background: var(--gris-100);
+  border: 1.5px solid var(--gris-300);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: box-shadow var(--transition);
+}
+
+.carte-resultat:hover { box-shadow: var(--shadow-sm); }
+
+.carte-label {
+  font-size: .76rem;
+  font-weight: 600;
+  color: var(--gris-500);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+.carte-valeur {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--bleu-profond);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.01em;
+}
+
+.carte-resultat.highlight {
+  background: var(--bleu-profond);
+  border-color: var(--bleu-profond);
+}
+
+.carte-resultat.highlight .carte-label { color: rgba(255,255,255,.65); }
+.carte-resultat.highlight .carte-valeur { color: var(--blanc); font-size: 1.3rem; }
+
+.solde-positif {
+  background: var(--rouge-clair);
+  border-color: #fca5a5;
+}
+.solde-positif .carte-label  { color: var(--rouge); }
+.solde-positif .carte-valeur { color: var(--rouge); }
+
+.solde-negatif {
+  background: var(--vert-clair);
+  border-color: #86efac;
+}
+.solde-negatif .carte-label  { color: var(--vert); }
+.solde-negatif .carte-valeur { color: var(--vert); }
+
+.solde-neutre {
+  background: var(--gris-200);
+  border-color: var(--gris-300);
+}
+
+/* -----------------------------------------------------------------------------
+   16. TABLEAUX DÉTAIL
+----------------------------------------------------------------------------- */
+
+.detail-section {
+  border: 1.5px solid var(--gris-300);
+  border-radius: var(--radius-md);
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+
+.detail-section summary {
+  padding: 12px 16px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: .88rem;
+  color: var(--gris-700);
+  background: var(--gris-100);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  user-select: none;
+  transition: background var(--transition);
+}
+
+.detail-section summary::-webkit-details-marker { display: none; }
+.detail-section summary::before { content: "▶"; font-size: .6rem; transition: transform var(--transition); color: var(--gris-500); }
+details[open].detail-section > summary::before { transform: rotate(90deg); }
+.detail-section summary:hover { background: var(--bleu-doux); }
+
+.tableau-tranches,
+.tableau-credits,
+.tableau-cases {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .88rem;
+}
+
+.tableau-tranches thead tr,
+.tableau-credits thead tr,
+.tableau-cases thead tr {
+  background: var(--gris-200);
+}
+
+.tableau-tranches th,
+.tableau-credits th,
+.tableau-cases th {
+  padding: 10px 14px;
+  font-size: .78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--gris-700);
+  text-align: left;
+}
+
+.tableau-tranches td,
+.tableau-credits td,
+.tableau-cases td {
+  padding: 9px 14px;
+  border-top: 1px solid var(--gris-200);
+  color: var(--gris-700);
+  font-variant-numeric: tabular-nums;
+}
+
+.tableau-tranches tbody tr:hover,
+.tableau-credits tbody tr:hover,
+.tableau-cases tbody tr:hover {
+  background: var(--gris-100);
+}
+
+.total-ligne td {
+  background: var(--bleu-doux);
+  font-weight: 700;
+  color: var(--bleu-moyen);
+}
+
+/* -----------------------------------------------------------------------------
+   17. RÉSULTATS SÉPARÉ
+----------------------------------------------------------------------------- */
+
+.resultats-deux-colonnes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 600px) {
+  .resultats-deux-colonnes { grid-template-columns: 1fr; }
+}
+
+.colonne-declarant h3,
+.colonne-declarant h4 {
+  font-size: .95rem;
+  font-weight: 700;
+  color: var(--bleu-moyen);
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1.5px solid var(--gris-200);
+}
+
+.total-separe {
+  background: var(--gris-100);
+  border: 1.5px solid var(--gris-300);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  margin-top: 8px;
+}
+
+.total-separe h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--bleu-profond);
+  margin-bottom: 14px;
+}
+
+/* -----------------------------------------------------------------------------
+   18. VERDICT COMPARATIF
+----------------------------------------------------------------------------- */
+
+.verdict {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 18px 22px;
+  border-radius: var(--radius-md);
+  margin-bottom: 26px;
+  font-size: .95rem;
+  font-weight: 600;
+  border: 2px solid transparent;
+}
+
+.verdict-commune {
+  background: linear-gradient(135deg, #eff6ff, #dbeafe);
+  border-color: var(--bleu-clair);
+  color: var(--bleu-moyen);
+}
+
+.verdict-separee {
+  background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+  border-color: var(--vert);
+  color: #15803d;
+}
+
+.verdict-icone { font-size: 1.4rem; }
+
+.verdict-texte { flex: 1; }
+
+.verdict-ecart {
+  background: rgba(255,255,255,.7);
+  border-radius: var(--radius-sm);
+  padding: 6px 14px;
+  font-size: .9rem;
+  white-space: nowrap;
+}
+
+.verdict-ecart strong { font-size: 1.05rem; }
+
+/* -----------------------------------------------------------------------------
+   19. COLONNES COMPARATIF
+----------------------------------------------------------------------------- */
+
+.comparatif-colonnes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 700px) {
+  .comparatif-colonnes { grid-template-columns: 1fr; }
+}
+
+.colonne-scenario {
+  border: 1.5px solid var(--gris-300);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  background: var(--gris-100);
+  transition: box-shadow var(--transition);
+}
+
+.colonne-scenario h3 {
+  font-size: .95rem;
+  font-weight: 700;
+  color: var(--bleu-profond);
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 1.5px solid var(--gris-200);
+}
+
+.scenario-winner {
+  border-color: var(--bleu-clair);
+  background: var(--bleu-doux);
+  box-shadow: 0 0 0 3px rgba(37,99,235,.12);
+}
+
+.scenario-winner h3 { color: var(--bleu-moyen); }
+
+.detail-commun {
+  background: var(--gris-100);
+  border: 1.5px solid var(--gris-300);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  margin-top: 8px;
+}
+
+.detail-commun h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--bleu-profond);
+  margin-bottom: 16px;
+}
+
+/* -----------------------------------------------------------------------------
+   20. ERREUR
+----------------------------------------------------------------------------- */
+
+.erreur-bloc {
+  background: var(--rouge-clair);
+  border: 1.5px solid #fca5a5;
+  border-radius: var(--radius-md);
+  padding: 20px 24px;
+  color: var(--rouge);
+  font-weight: 600;
+  font-size: .95rem;
+}
+
+/* -----------------------------------------------------------------------------
+   21. PIED DE PAGE
+----------------------------------------------------------------------------- */
+
+.app-footer {
+  text-align: center;
+  color: rgba(255,255,255,.45);
+  font-size: .78rem;
+  padding-top: 32px;
+  line-height: 1.8;
+}
+
+.app-footer a {
+  color: rgba(255,255,255,.6);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color var(--transition);
+}
+
+.app-footer a:hover { color: var(--blanc); }
+
+/* -----------------------------------------------------------------------------
+   22. SCROLLBAR CUSTOM (navigateurs Webkit)
+----------------------------------------------------------------------------- */
+
+::-webkit-scrollbar { width: 7px; height: 7px; }
+::-webkit-scrollbar-track { background: var(--gris-200); }
+::-webkit-scrollbar-thumb { background: var(--gris-400); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--gris-500); }
+
+/* -----------------------------------------------------------------------------
+   23. RESPONSIVE AJUSTEMENTS FINS
+----------------------------------------------------------------------------- */
+
+@media (max-width: 480px) {
+  .nav-buttons { flex-direction: column-reverse; }
+  .btn { width: 100%; justify-content: center; }
+  .resultats-grid { grid-template-columns: 1fr 1fr; }
+  .carte-valeur { font-size: 1rem; }
+  .app-wrapper { padding: 16px 12px 48px; }
+}
+
+@media (min-width: 860px) {
+  .etape { padding: 44px 52px; }
+}
+
+/* -----------------------------------------------------------------------------
+   24. FOCUS ACCESSIBILITÉ
+----------------------------------------------------------------------------- */
+
+:focus-visible {
+  outline: 3px solid var(--bleu-clair);
+  outline-offset: 3px;
+}
+
+button:focus-visible, a:focus-visible {
+  outline: 3px solid var(--or);
+  outline-offset: 3px;
+}
+
+
+/* ── AIDE CONTEXTUELLE ── */
+.aide-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-aide {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 20px;
+  padding: 10px !important;
+  border-radius: 50px;
+  background: var(--gris-300);
+  color: var(--gris-700);
+  font-size: .52rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background var(--transition), color var(--transition);
+  line-height: 1;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+.btn-aide:hover {
+  background: var(--bleu-clair);
+  color: var(--blanc);
+}
+
+.aide-contenu {
+  margin : 4px 0;
+  font-size: .72rem;
+  line-height: 1.2;
+  animation: fadeSlide .3s ease both;
+}
+
+input[readonly] {
+  background-color: var(--bg-muted, #f5f5f5);
+  color: var(--text-muted, #888);
+  cursor: not-allowed;
+  border-style: dashed;
+}
+
+.hint {
+  font-size: 0.8rem;
+  color: var(--text-muted, #888);
+  margin-top: 4px;
+}

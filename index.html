@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulateur Impôt 2026</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body>
+
+  <div class="app-wrapper">
+
+    <!-- ===== EN-TÊTE ===== -->
+    <header class="app-header">
+      <h1>Aides à la déclaration d'Impôts 2026</h1>
+      <p class="app-subtitle">Simulation indicative — revenus 2025 déclarés en 2026</p>
+    </header>
+
+    <!-- ===== BARRE DE PROGRESSION ===== -->
+    <div class="progress-wrapper">
+      <div class="progress-track">
+        <div id="progress-bar" class="progress-fill" style="width:16%"></div>
+      </div>
+      <span id="progress-label" class="progress-label">Étape 1 / 6</span>
+    </div>
+
+    <!-- ===== FORMULAIRE PRINCIPAL ===== -->
+    <form id="simulateur" novalidate>
+
+      <!-- ─────────────────────────────────────────────
+         ÉTAPE 1 — SITUATION FAMILIALE
+    ───────────────────────────────────────────── -->
+      <section id="etape-situation" class="etape">
+        <h2 class="etape-titre">👤 Votre situation familiale</h2>
+
+        <div class="field-group">
+          <label class="field-label">
+            Situation
+            <button type="button" class="btn-aide" data-cible="aide-situation">Explications</button>
+          </label>
+          <div class="info-box aide-contenu hidden" id="aide-situation">
+            Choisissez votre situation au <strong>31 décembre 2025</strong>.<br><br>
+            • <strong>Marié(e) / Pacsé(e)</strong> : déclaration commune avec votre conjoint.<br>
+            • <strong>Concubin(e)</strong> : chacun déclare séparément.<br>
+            • <strong>Divorcé(e) / Veuf(ve)</strong> : vous déclarez seul(e).
+          </div>
+          <div class="radio-group">
+            <label><input type="radio" name="situation" value="celibataire" checked /> Célibataire</label>
+            <label><input type="radio" name="situation" value="marie" /> Marié(e)</label>
+            <label><input type="radio" name="situation" value="pacse" /> Pacsé(e)</label>
+            <label><input type="radio" name="situation" value="divorce" /> Divorcé(e)</label>
+            <label><input type="radio" name="situation" value="veuf" /> Veuf / Veuve</label>
+            <label><input type="radio" name="situation" value="concubin" /> Concubin(e)</label>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">
+            Invalidité (demi-part supplémentaire)
+            <button type="button" class="btn-aide" data-cible="aide-invalidite">Explications</button>
+          </label>
+          <div class="info-box aide-contenu hidden" id="aide-invalidite">
+            Cochez <strong>Oui</strong> si vous êtes titulaire d'une <strong>carte d'invalidité à taux ≥ 80%</strong> ou
+            d'une pension d'invalidité de 3e catégorie.<br><br>
+            Cela vous donne droit à une <strong>demi-part supplémentaire</strong> qui réduit mécaniquement votre impôt.
+          </div>
+          <div class="radio-group">
+            <label><input type="radio" name="invalidite" value="false" checked /> Non</label>
+            <label><input type="radio" name="invalidite" value="true" /> Oui</label>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">
+            Ancien combattant (demi-part supplémentaire)
+            <button type="button" class="btn-aide" data-cible="aide-combattant">Explications</button>
+          </label>
+          <div class="info-box aide-contenu hidden" id="aide-combattant">
+            Cochez <strong>Oui</strong> si vous êtes titulaire de la <strong>carte du combattant</strong> ou d'une
+            pension militaire d'invalidité, <strong>et que vous avez au moins 74 ans</strong>.<br><br>
+            Ces conditions doivent être remplies toutes les deux pour bénéficier de la demi-part supplémentaire.
+          </div>
+          <div class="radio-group">
+            <label><input type="radio" name="ancienCombattant" value="false" checked /> Non</label>
+            <label><input type="radio" name="ancienCombattant" value="true" /> Oui</label>
+          </div>
+        </div>
+
+        <!-- Enfants -->
+        <div class="field-group">
+          <label class="field-label">
+            Enfants à charge
+            <button type="button" class="btn-aide" data-cible="aide-enfants">Explications</button>
+          </label>
+          <div class="info-box aide-contenu hidden" id="aide-enfants">
+            Ajoutez chaque enfant à votre charge au <strong>31 décembre 2025</strong> : enfant mineur, ou enfant majeur
+            ayant demandé son rattachement à votre foyer fiscal.<br><br>
+            • <strong>Garde exclusive</strong> : l'enfant vit principalement chez vous → vous bénéficiez de la part
+            fiscale entière.<br>
+            • <strong>Garde alternée</strong> : l'enfant vit à égalité chez chaque parent → les parts fiscales sont
+            partagées entre les deux foyers.
+          </div>
+          <div id="liste-enfants"></div>
+          <button type="button" id="btn-ajouter-enfant" class="btn btn-secondary">+ Ajouter un enfant</button>
+        </div>
+
+        <div class="nav-buttons">
+          <button type="button" class="btn btn-primary btn-suivant">Suivant →</button>
+        </div>
+      </section>
+
+      <!-- ─────────────────────────────────────────────
+         ÉTAPE 2 — REVENUS
+    ───────────────────────────────────────────── -->
+      <section id="etape-revenus" class="etape hidden">
+        <h2 class="etape-titre">💶 Revenus</h2>
+
+        <!-- Déclarant 1 -->
+        <fieldset class="declarant-bloc">
+          <legend>Déclarant 1</legend>
+
+          <div class="field-row">
+            <div class="field-group">
+              <label for="salaireNet_d1">
+                Salaire net imposable (case 1AJ)
+                <button type="button" class="btn-aide" data-cible="aide-salairenet">Explications</button>
+              </label>
+              <div class="info-box aide-contenu hidden" id="aide-salairenet">
+                Indiquez ici le total de votre <strong>net imposable</strong> qui comprend :<br><br>
+                • Votre <strong>salaire net imposable</strong> (fiche de paie, ligne "Net imposable")<br>
+                • Les <strong>indemnités journalières</strong> maladie / maternité / paternité (attestation CPAM)<br>
+                • Les <strong>allocations chômage</strong> ARE (attestation France Travail)<br><br>
+                Ces montants sont généralement <strong>pré-remplis ensemble en case 1AJ</strong> sur
+                impots.gouv.fr.<br><br>
+              </div>
+              <div class="input-euro">
+                <input type="number" id="salaireNet_d1" name="salaireNet_d1" min="0" step="1" placeholder="0" />
+              </div>
+            </div>
+            <div class="field-group">
+              <label for="salaireBrut_d1">
+                Salaire brut (pour syndicat)
+                <button type="button" class="btn-aide" data-cible="aide-salairebrut">Explications</button>
+              </label>
+              <div class="info-box aide-contenu hidden" id="aide-salairebrut">
+                Le salaire brut est nécessaire <strong>uniquement si vous avez des cotisations syndicales</strong> à
+                déduire.<br><br>
+                Il figure sur votre fiche de paie à la ligne <em>« Salaire brut »</em>. Si vous n'êtes pas syndiqué,
+                laissez ce champ à 0.
+              </div>
+              <div class="input-euro">
+                <input type="number" id="salaireBrut_d1" name="salaireBrut_d1" min="0" step="1" placeholder="0" />
+              </div>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field-group">
+              <label for="pensionsRetraites_d1">
+                Pensions / retraites (case 1AS)
+                <button type="button" class="btn-aide" data-cible="aide-pensions">Explications</button>
+              </label>
+              <div class="info-box aide-contenu hidden" id="aide-pensions">
+                Indiquez ici le total des <strong>pensions de retraite</strong>, pensions alimentaires reçues, et rentes
+                viagères perçues en 2025.<br><br>
+                Ces montants sont généralement <strong>pré-remplis</strong> sur votre déclaration en ligne. Ils
+                bénéficient d'un abattement automatique de 10% (plafonné à 4 321 €).
+              </div>
+              <div class="input-euro">
+                <input type="number" id="pensionsRetraites_d1" min="0" step="1" placeholder="0" />
+              </div>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field-group">
+              <label for="rcmBrut_d1">
+                Revenus de capitaux mobiliers bruts (case 2DC)
+                <button type="button" class="btn-aide" data-cible="aide-rcm">Explications</button>
+              </label>
+              <div class="info-box aide-contenu hidden" id="aide-rcm">
+                Revenus générés par vos <strong>placements financiers</strong> : dividendes d'actions, intérêts
+                d'obligations, coupons…<br><br>
+                Ces montants figurent sur l'<strong>Imprimé Fiscal Unique (IFU)</strong> que vous envoie votre banque ou
+                courtier chaque année.<br><br>
+                ⚠️ Les intérêts des <strong>Livrets A, LDD, LEP</strong> sont exonérés et ne se déclarent pas.
+              </div>
+              <div class="input-euro">
+                <input type="number" id="rcmBrut_d1" min="0" step="1" placeholder="0" />
+              </div>
+            </div>
+            <div class="field-group">
+              <label for="pfuVerse_d1">
+                PFU déjà versé (Flat Taxe - case 2CK)
+                <button type="button" class="btn-aide" data-cible="aide-pfu">Explications</button>
+              </label>
+              <div class="info-box aide-contenu hidden" id="aide-pfu">
+                Le PFU (aussi appelé <strong>« Flat Tax »</strong>) est un acompte de 12,8% prélevé directement par
+                votre banque sur vos dividendes et intérêts au moment de leur versement.<br><br>
+                Ce montant figure sur votre <strong>IFU (Imprimé Fiscal Unique)</strong>. Il sera déduit de votre impôt
+                final pour éviter une double imposition.
+              </div>
+              <div class="input-euro">
+                <input type="number" id="pfuVerse_d1" min="0" step="1" placeholder="0" />
+              </div>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label for="pasVerse_d1">
+              Prélèvement à la source versé (case 8HV)
+              <button type="button" class="btn-aide" data-cible="aide-pas">Explications</button>
+            </label>
+            <div class="info-box aide-contenu hidden" id="aide-pas">
+              Total des acomptes d'impôt <strong>déjà prélevés sur vos salaires</strong> tout au long de l'année 2025
+              par votre employeur.<br><br>
+              Il figure sur votre <strong>dernière fiche de paie de décembre</strong> (colonne cumul annuel) ou est
+              pré-rempli sur impots.gouv.fr.<br><br>
+              • Si vous avez <strong>trop payé</strong> → vous serez remboursé<br>
+              • Si vous avez <strong>pas assez payé</strong> → vous aurez un complément à régler
+            </div>
+            <div class="input-euro">
+              <input type="number" id="pasVerse_d1" min="0" step="1" placeholder="0" />
+            </div>
+          </div>
+
+        </fieldset>
+
+        <!-- Déclarant 2 (couple uniquement) -->
+        <fieldset id="bloc-conjoint" class="declarant-bloc hidden">
+          <legend>Déclarant 2 (conjoint)</legend>
+
+          <div class="field-row">
+            <div class="field-group">
+              <label for="salaireNet_d2">Salaire net imposable (case 1BJ)</label>
+              <div class="input-euro">
+                <input type="number" id="salaireNet_d2" min="0" step="1" placeholder="0" />
+              </div>
+            </div>
+            <div class="field-group">
+              <label for="salaireBrut_d2">Salaire brut (pour syndicat)</label>
+              <div class="input-euro">
+                <input type="number" id="salaireBrut_d2" min="0" step="1" placeholder="0" />
+              </div>
+            </div>
+
+            <div class="field-row">
+              <div class="field-group">
+                <label for="pensionsRetraites_d2">Pensions / retraites</label>
+                <div class="input-euro">
+                  <input type="number" id="pensionsRetraites_d2" min="0" step="1" placeholder="0" />
+                </div>
+              </div>
+            </div>
+
+            <div class="field-row">
+              <div class="field-group">
+                <label for="rcmBrut_d2">Revenus de capitaux mobiliers bruts</label>
+                <div class="input-euro">
+                  <input type="number" id="rcmBrut_d2" min="0" step="1" placeholder="0" />
+                </div>
+              </div>
+              <div class="field-group">
+                <label for="pfuVerse_d2">PFU déjà versé (case 2CK)</label>
+                <div class="input-euro">
+                  <input type="number" id="pfuVerse_d2" min="0" step="1" placeholder="0" />
+                </div>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label for="pasVerse_d2">Prélèvement à la source versé (case 8IW)</label>
+              <div class="input-euro">
+                <input type="number" id="pasVerse_d2" min="0" step="1" placeholder="0" />
+              </div>
+            </div>
+        </fieldset>
+
+        <details class="sous-bloc-details">
+          <summary>Cryptomonnaies</summary>
+
+          <div class="info-box" style="border-left: 4px solid #e67e22; margin-bottom: 16px;">
+            ⚠️ Seules les <strong>conversions en euros</strong> (ou achats de biens/services avec des cryptos) sont
+            imposables.
+            Les échanges <strong>crypto → crypto</strong> ne le sont pas.<br>
+            Seuil d'exonération : <strong>305 €</strong> de plus-value nette sur l'année.
+          </div>
+
+          <!-- Déclarant 1 -->
+          <fieldset class="declarant-bloc">
+            <legend>Déclarant 1</legend>
+            <div class="field-row">
+              <div class="field-group">
+                <label for="crypto_pv_d1">
+                  Plus-value nette (case 3AN)
+                  <button type="button" class="btn-aide" data-cible="aide-crypto-pv">Explications</button>
+                </label>
+                <div class="info-box aide-contenu hidden" id="aide-crypto-pv">
+                  Résultat <strong>net positif</strong> de toutes vos ventes de cryptos en euros en 2025.<br><br>
+                  Se calcule via le <strong>Cerfa 2086</strong>. Des outils comme <strong>Waltio ou Koinly</strong>
+                  peuvent l'automatiser depuis votre historique de transactions.
+                </div>
+                <div class="input-euro">
+                  <input type="number" id="crypto_pv_d1" min="0" step="1" placeholder="0" />
+                </div>
+              </div>
+              <div class="field-group">
+                <label for="crypto_mv_d1">
+                  Moins-value nette (case 3BN)
+                  <button type="button" class="btn-aide" data-cible="aide-crypto-mv">Explications</button>
+                </label>
+                <div class="info-box aide-contenu hidden" id="aide-crypto-mv">
+                  Résultat <strong>net négatif</strong> de vos cessions.<br><br>
+                  ⚠️ Les moins-values crypto <strong>ne sont pas reportables</strong> sur les années suivantes
+                  et ne compensent que les plus-values crypto de la même année.
+                </div>
+                <div class="input-euro">
+                  <input type="number" id="crypto_mv_d1" min="0" step="1" placeholder="0" />
+                </div>
+              </div>
+            </div>
+            <div class="field-group">
+              <label class="field-label">
+                Option barème progressif ? (case 3CN)
+                <button type="button" class="btn-aide" data-cible="aide-crypto-bareme">Explications</button>
+              </label>
+              <div class="info-box aide-contenu hidden" id="aide-crypto-bareme">
+                Par défaut : <strong>Flat Tax 30%</strong> (12,8% IR + 17,2% prélèvements sociaux).<br><br>
+                Si votre tranche marginale est inférieure à 12,8%, le barème progressif peut être plus avantageux.
+                Le simulateur calcule les deux.<br><br>
+                ⚠️ Ce choix est <strong>irrévocable</strong> après la date limite de déclaration.
+              </div>
+              <div class="radio-group">
+                <label><input type="radio" name="crypto_bareme_d1" value="flat" checked /> Flat Tax 30% (par
+                  défaut)</label>
+                <label><input type="radio" name="crypto_bareme_d1" value="progressif" /> Barème progressif</label>
+              </div>
+            </div>
+            <div class="field-group">
+              <label class="field-label">
+                Comptes sur plateformes étrangères ? (Binance, Kraken, Coinbase…)
+                <button type="button" class="btn-aide" data-cible="aide-crypto-etranger">Explications</button>
+              </label>
+              <div class="info-box aide-contenu hidden" id="aide-crypto-etranger">
+                Toute plateforme dont le siège est <strong>hors de France</strong> doit être déclarée via le
+                <strong>formulaire 3916-bis</strong> sur impots.gouv.fr, <strong>même sans transaction</strong>.<br><br>
+                ⚠️ Amende : <strong>750 € par compte non déclaré</strong> (10 000 € si paradis fiscal).
+              </div>
+              <div class="radio-group">
+                <label><input type="radio" name="crypto_comptes_d1" value="non" checked /> Non</label>
+                <label><input type="radio" name="crypto_comptes_d1" value="oui" /> Oui, je remplirai le formulaire
+                  3916-bis</label>
+              </div>
+            </div>
+          </fieldset>
+
+          <!-- Déclarant 2 (couple uniquement — masqué si célibataire) -->
+          <fieldset class="declarant-bloc" id="bloc-crypto-conjoint" style="display:none">
+            <legend>Déclarant 2</legend>
+            <div class="field-row">
+              <div class="field-group">
+                <label for="crypto_pv_d2">Plus-value nette (case 3AN)</label>
+                <div class="input-euro">
+                  <input type="number" id="crypto_pv_d2" min="0" step="1" placeholder="0" />
+                </div>
+              </div>
+              <div class="field-group">
+                <label for="crypto_mv_d2">Moins-value nette (case 3BN)</label>
+                <div class="input-euro">
+                  <input type="number" id="crypto_mv_d2" min="0" step="1" placeholder="0" />
+                </div>
+              </div>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Option barème progressif ? (case 3CN)</label>
+              <div class="radio-group">
+                <label><input type="radio" name="crypto_bareme_d2" value="flat" checked /> Flat Tax 30% (par
+                  défaut)</label>
+                <label><input type="radio" name="crypto_bareme_d2" value="progressif" /> Barème progressif</label>
+              </div>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Comptes sur plateformes étrangères ?</label>
+              <div class="radio-group">
+                <label><input type="radio" name="crypto_comptes_d2" value="non" checked /> Non</label>
+                <label><input type="radio" name="crypto_comptes_d2" value="oui" /> Oui — je remplirai le formulaire
+                  3916-bis</label>
+              </div>
+            </div>
+          </fieldset>
+
+          <!-- Checklist obligatoire -->
+          <div class="info-box" style="margin-top:16px; border-left: 4px solid #e74c3c;">
+            <strong>📋 Obligations déclaratives : à ne pas oublier</strong><br><br>
+            <strong>Même sans aucune transaction en 2025 :</strong><br>
+            • Déclarer chaque compte étranger via le <strong>formulaire 3916-bis</strong> sur impots.gouv.fr<br>
+            &nbsp;&nbsp;&nbsp;→ Binance, Kraken, Coinbase, Bybit, OKX… tout ce qui n'est pas basé en France<br>
+            &nbsp;&nbsp;&nbsp;→ Amende : <strong>750 € par compte oublié</strong><br><br>
+            <strong>Si vous avez vendu des cryptos contre des euros :</strong><br>
+            • Remplir le <strong>Cerfa 2086</strong> (calcul détaillé de chaque cession)<br>
+            • Reporter la plus-value nette en <strong>case 3AN</strong> du formulaire 2042-C<br>
+            • Utiliser <strong>Waltio, Koinly ou CoinTracking</strong> pour automatiser le calcul depuis votre
+            historique
+          </div>
+
+        </details>
+
+
+        <div class="nav-buttons">
+          <button type="button" class="btn btn-ghost btn-precedent">← Précédent</button>
+          <button type="button" class="btn btn-primary btn-suivant">Suivant →</button>
+        </div>
+      </section>
+
+      <!-- ─────────────────────────────────────────────
+         ÉTAPE 3 — FRAIS PROFESSIONNELS
+    ───────────────────────────────────────────── -->
+      <section id="etape-frais" class="etape hidden">
+        <h2 class="etape-titre">🚗 Frais professionnels</h2>
+
+        <!-- Déclarant 1 -->
+        <fieldset class="declarant-bloc">
+          <legend>Déclarant 1 — Frais</legend>
+
+          <!-- Frais km -->
+          <div class="field-group">
+            <label class="field-label">
+              Frais kilométriques ?
+              <button type="button" class="btn-aide" data-cible="aide-km">Explications</button>
+            </label>
+            <div class="info-box aide-contenu hidden" id="aide-km">
+              Si vous utilisez votre véhicule personnel pour aller travailler, vous pouvez déduire ces trajets grâce au
+              <strong>barème kilométrique fiscal</strong> plutôt que l'abattement forfaitaire de 10% appliqué par
+              défaut.<br><br>
+              C'est souvent plus avantageux, surtout si vous habitez loin de votre lieu de travail.<br><br>
+              ⚠️ La distance aller est plafonnée à <strong>40 km</strong> sans justificatif particulier.
+            </div>
+            <div class="radio-group">
+              <label><input type="radio" name="utiliseKm_d1" value="non" checked /> Non</label>
+              <label><input type="radio" name="utiliseKm_d1" value="oui" /> Oui</label>
+            </div>
+          </div>
+
+          <div id="bloc-km-d1" class="sous-bloc hidden">
+            <div class="field-row">
+              <div class="field-group">
+                <label for="km_type_d1">
+                  Type de véhicule
+                  <button type="button" class="btn-aide" data-cible="aide-km-type">Explications</button>
+                </label>
+                <div class="info-box aide-contenu hidden" id="aide-km-type">
+                  Le barème kilométrique varie selon le type de véhicule :<br><br>
+                  • <strong>Thermique</strong> : barème standard voiture<br>
+                  • <strong>Électrique</strong> : barème majoré de <strong>+20%</strong> pour encourager la transition
+                  énergétique<br>
+                  • <strong>Moto / Scooter</strong> : barème spécifique deux-roues (inférieur à la voiture)<br>
+                  • <strong>Vélo</strong> : indemnité forfaitaire de 0,25 €/km
+                </div>
+                <select id="km_type_d1">
+                  <option value="thermique">Thermique</option>
+                  <option value="electrique">Électrique (+20%)</option>
+                  <option value="moto">Moto / Scooter</option>
+                  <option value="velo">Vélo</option>
+                </select>
+              </div>
+              <div class="field-group">
+                <label for="km_cv_d1">
+                  Puissance fiscale (CV)
+                  <button type="button" class="btn-aide" data-cible="aide-km-cv">Explications</button>
+                </label>
+                <div class="info-box aide-contenu hidden" id="aide-km-cv">
+                  La puissance fiscale (en <strong>chevaux fiscaux</strong>) détermine le barème kilométrique appliqué :
+                  plus elle est élevée, plus le taux au km est favorable.<br><br>
+                  Vous la trouvez sur votre <strong>carte grise</strong> à la ligne <em>« P.6 — Puissance administrative
+                    »</em>.
+                </div>
+                <input type="number" id="km_cv_d1" min="1" max="99" step="1" placeholder="5" />
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field-group">
+                <label for="km_aller_d1">
+                  Distance ALLER domicile-travail (km)
+                  <button type="button" class="btn-aide" data-cible="aide-km-aller">Explications</button>
+                </label>
+                <div class="info-box aide-contenu hidden" id="aide-km-aller">
+                  Indiquez uniquement la distance <strong>aller simple</strong> entre votre domicile et votre lieu de
+                  travail. Le retour est calculé automatiquement.<br><br>
+                  ⚠️ Au-delà de <strong>40 km aller</strong>, l'administration peut demander une justification
+                  (éloignement contraint par raison professionnelle ou familiale impérieuse).
+                </div>
+                <input type="number" id="km_aller_d1" min="0" step="0.5" placeholder="0" />
+              </div>
+              <div class="field-group">
+                <label for="km_jours_d1">
+                  Nombre de jours travaillés
+                  <button type="button" class="btn-aide" data-cible="aide-km-jours">Explications</button>
+                </label>
+                <div class="info-box aide-contenu hidden" id="aide-km-jours">
+                  Nombre de jours où vous avez effectivement fait le trajet domicile-travail en 2025.<br><br>
+                  Référence pour un temps plein : <strong>environ 218 jours</strong> (365 jours − weekends et repos −
+                  congés − jours fériés).<br><br>
+                  Déduisez les jours de <strong>télétravail</strong>, de maladie, et de congés où vous n'avez pas fait
+                  le trajet.
+                </div>
+                <input type="number" id="km_jours_d1" min="0" max="365" step="1" placeholder="0" />
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field-group">
+                <label for="km_peages_d1">
+                  Péages
+                  <button type="button" class="btn-aide" data-cible="aide-km-peages">Explications</button>
+                </label>
+                <div class="info-box aide-contenu hidden" id="aide-km-peages">
+                  Total annuel des péages payés pour vos <strong>trajets domicile-travail</strong> en 2025.<br><br>
+                  Ces frais s'ajoutent au barème kilométrique. Conservez vos <strong>relevés de télépéage</strong>
+                  (Sanef, Vinci…) comme justificatifs en cas de contrôle.
+                </div>
+                <input type="number" id="km_peages_d1" min="0" step="1" placeholder="0" />
+              </div>
+              <div class="field-group">
+                <label for="km_parking_d1">
+                  Parking
+                  <button type="button" class="btn-aide" data-cible="aide-km-parking">Explications</button>
+                </label>
+                <div class="info-box aide-contenu hidden" id="aide-km-parking">
+                  Coût annuel de votre <strong>abonnement parking</strong> ou des places payantes directement liées à
+                  votre trajet domicile-travail.<br><br>
+                  Ces frais s'ajoutent au barème kilométrique. Conservez vos justificatifs (abonnement, tickets).
+                </div>
+                <input type="number" id="km_parking_d1" min="0" step="1" placeholder="0" />
+              </div>
+            </div>
+            <div class="field-group">
+              <label for="km_pros_d1">
+                Km professionnels supplémentaires
+                <button type="button" class="btn-aide" data-cible="aide-km-pros">Explications</button>
+              </label>
+              <div class="info-box aide-contenu hidden" id="aide-km-pros">
+                Trajets effectués <strong>dans le cadre de votre travail</strong>, hors domicile-travail : déplacements
+                chez des clients, entre plusieurs sites de l'entreprise, formations en dehors de votre lieu
+                habituel…<br><br>
+                Ces kilomètres s'ajoutent au calcul et bénéficient du même barème fiscal.
+              </div>
+              <input type="number" id="km_pros_d1" min="0" step="1" placeholder="0" />
+            </div>
+          </div>
+
+          <!-- Frais repas -->
+          <div class="field-group">
+            <label class="field-label">
+              Frais de repas ?
+              <button type="button" class="btn-aide" data-cible="aide-repas">Explications</button>
+            </label>
+            <div class="info-box aide-contenu hidden" id="aide-repas">
+              Déductibles si vous êtes <strong>contraint de déjeuner sur votre lieu de travail</strong> parce que vous
+              habitez trop loin pour rentrer le midi.<br><br>
+              Seule la partie excédant le coût d'un repas pris à domicile (<strong>forfait ~5,10 €</strong>) est
+              déductible.<br><br>
+              Si vous avez des <strong>tickets-restaurant</strong>, la part patronale diminue votre déduction car c'est
+              une aide déjà reçue.
+            </div>
+
+            <div class="radio-group">
+              <label><input type="radio" name="utiliseRepas_d1" value="non" checked /> Non</label>
+              <label><input type="radio" name="utiliseRepas_d1" value="oui" /> Oui</label>
+            </div>
+          </div>
+
+          <div id="bloc-repas-d1" class="sous-bloc hidden">
+            <div class="field-group">
+              <label class="field-label">
+                Justificatifs disponibles ?
+                <button type="button" class="btn-aide" data-cible="aide-repas-justif">Explications</button>
+              </label>
+              <div class="info-box aide-contenu hidden" id="aide-repas-justif">
+                Le fisc part du principe que vous auriez mangé chez vous pour <strong>5,45 €</strong>.
+                Seul le <em>surplus</em> par rapport à ce montant est un frais professionnel.<br><br>
+
+                <strong>Sans justificatifs (option simple) :</strong><br>
+                Le fisc admet forfaitairement <strong>5,45 € de déduction par jour</strong>, sans rien à fournir.
+                C'est le montant du repas à domicile, considéré comme frais professionnel supplémentaire.<br><br>
+
+                <strong>Avec justificatifs (tickets de caisse) :</strong><br>
+                Déduction = prix réel payé − 5,45 €, plafonné à <strong>15,65 € net/jour</strong>
+                (le plafond légal du repas est fixé à 21,10 €, soit 21,10 − 5,45 = 15,65 € max).<br><br>
+
+                💡 <strong>Seuil de rentabilité :</strong> les justificatifs ne valent le coup
+                que si vous payez vos repas à <strong>plus de 10,90 € en moyenne</strong>
+                (5,45 + 5,45 = 10,90 €). En dessous, le forfait sans justificatif donne exactement le même résultat.
+              </div>
+              <div class="radio-group">
+                <label><input type="radio" name="repas_justificatifs_d1" value="non" checked /> Non (forfait)</label>
+                <label><input type="radio" name="repas_justificatifs_d1" value="oui" /> Oui</label>
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field-group">
+                <label for="repas_cout_d1">
+                  Coût repas par jour
+                  <button type="button" class="btn-aide" data-cible="aide-repas-cout">Explications</button>
+                </label>
+                <div class="info-box aide-contenu hidden" id="aide-repas-cout">
+                  Indiquez le coût moyen d'un repas complet sur votre lieu de travail.<br><br>
+
+                  <strong>Déduction nette selon votre dépense :</strong><br>
+                  • 6 € payé → <strong>0,55 €</strong> déduit (6 − 5,45)<br>
+                  • 9 € payé → <strong>3,55 €</strong> déduit (9 − 5,45)<br>
+                  • 12 € payé → <strong>6,55 €</strong> déduit (12 − 5,45)<br>
+                  • 21 € payé → <strong>15,65 €</strong> déduit (plafonné à 21,10 − 5,45)<br><br>
+
+                  ⚠️ Si vous payez <strong>moins de 10,90 €</strong> en moyenne, passez sur
+                  l'option "Sans justificatifs" — vous déduisez autant sans rien fournir.
+                </div>
+                <div class="input-euro">
+                  <input type="number" id="repas_cout_d1" min="0" step="0.01" value="5.45" readonly />
+                </div>
+                <p class="hint" id="hint-repas-cout-d1">
+                  Forfait fiscal sans justificatif — non modifiable
+                </p>
+              </div>
+              <div class="field-group">
+                <label for="repas_patronal_d1">
+                  Part patronale ticket-restaurant
+                  <button type="button" class="btn-aide" data-cible="aide-repas-patronal">Explications</button>
+                </label>
+                <div class="info-box aide-contenu hidden" id="aide-repas-patronal">
+                  Si votre employeur finance une partie de vos repas via des <strong>tickets-restaurant</strong>,
+                  cette aide réduit votre déduction — vous ne pouvez pas déduire ce que vous n'avez pas réellement
+                  payé.<br><br>
+
+                  La part patronale figure sur votre <strong>fiche de paie</strong>.<br><br>
+
+                  <strong>Exemple :</strong> vous payez 12 € → surplus déductible = 6,55 €.
+                  Votre employeur prend en charge 5 € → déduction ramenée à <strong>1,55 €</strong>.<br><br>
+
+                  Si vous n'avez pas de ticket-restaurant, laissez à <strong>0</strong>.
+                </div>
+                <div class="input-euro">
+                  <input type="number" id="repas_patronal_d1" min="0" step="0.01" placeholder="0" />
+                </div>
+              </div>
+            </div>
+            <div class="field-group">
+              <label for="repas_jours_d1">Nombre de jours concernés
+                <button type="button" class="btn-aide" data-cible="aide-repas-jours">Explications</button></label>
+              <div class="info-box aide-contenu hidden" id="aide-repas-jours">
+                Nombre de jours en 2025 où vous avez été <strong>contraint de manger sur place</strong>
+                car vous habitez trop loin pour rentrer chez vous le midi.<br><br>
+
+                Référence temps plein : <strong>218 jours</strong> (365 − weekends − congés − fériés).<br><br>
+
+                Déduisez :<br>
+                • Les jours de <strong>télétravail</strong> (vous mangez chez vous)<br>
+                • Les jours où vous avez pu <strong>rentrer déjeuner</strong><br>
+                • Les jours d'<strong>absence</strong> (congés, maladie, RTT)
+              </div>
+              <input type="number" id="repas_jours_d1" min="0" max="365" step="1" placeholder="0" />
+            </div>
+          </div>
+
+          <!-- Autres frais -->
+          <details class="sous-bloc-details">
+            <summary>Autres frais professionnels</summary>
+            <div class="field-row">
+              <div class="field-group">
+                <label for="frais_materiel_d1">
+                  Matériel / Équipement
+                  <button type="button" class="btn-aide" data-cible="aide-frais-materiel">Explications</button>
+                </label>
+                <div class="info-box aide-contenu hidden" id="aide-frais-materiel">
+                  Matériel acheté <strong>à vos frais</strong>, nécessaire à votre activité et non remboursé par votre
+                  employeur : ordinateur, imprimante, bureau, outillage spécifique…<br><br>
+                  ⚠️ Pour un achat supérieur à <strong>500 €</strong>, l'administration peut demander un amortissement
+                  sur plusieurs années.
+                </div>
+                <div class="input-euro">
+                  <input type="number" id="frais_materiel_d1" min="0" step="1" placeholder="0" />
+                </div>
+              </div>
+              <div class="field-group">
+                <label for="frais_formation_d1">
+                  Formation
+                  <button type="button" class="btn-aide" data-cible="aide-frais-formation">Explications</button>
+                </label>
+                <div class="info-box aide-contenu hidden" id="aide-frais-formation">
+                  Formations professionnelles payées <strong>de votre poche</strong>, non remboursées par votre
+                  employeur ni prises en charge via le CPF.<br><br>
+                  Exemples : cours en ligne payants, certification professionnelle, séminaire sectoriel.
+                </div>
+                <div class="input-euro">
+                  <input type="number" id="frais_formation_d1" min="0" step="1" placeholder="0" />
+                </div>
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field-group">
+                <label for="frais_vetements_d1">
+                  Vêtements professionnels
+                  <button type="button" class="btn-aide" data-cible="aide-frais-vetements">Explications</button>
+                </label>
+                <div class="info-box aide-contenu hidden" id="aide-frais-vetements">
+                  Uniquement les tenues <strong>spécifiques à votre profession</strong> et non portables dans la vie
+                  courante : uniforme, blouse médicale, tenue de protection, robe d'avocat…<br><br>
+                  ⚠️ Un costume ou des chaussures classiques <strong>ne sont pas déductibles</strong>, même portés
+                  uniquement au bureau.
+                </div>
+                <div class="input-euro">
+                  <input type="number" id="frais_vetements_d1" min="0" step="1" placeholder="0" />
+                </div>
+              </div>
+              <div class="field-group">
+                <label for="frais_documentation_d1">
+                  Documentation
+                  <button type="button" class="btn-aide" data-cible="aide-frais-documentation">Explications</button>
+                </label>
+                <div class="info-box aide-contenu hidden" id="aide-frais-documentation">
+                  Abonnements à des <strong>revues professionnelles</strong>, achat d'ouvrages techniques, accès à des
+                  bases de données liées à votre métier.<br><br>
+                  Exemples : revue juridique, manuel technique, plateforme de veille sectorielle.
+                </div>
+                <div class="input-euro">
+                  <input type="number" id="frais_documentation_d1" min="0" step="1" placeholder="0" />
+                </div>
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field-group">
+                <label for="frais_doubleresidence_d1">
+                  Double résidence
+                  <button type="button" class="btn-aide" data-cible="aide-frais-doubleresidence">Explications</button>
+                </label>
+                <div class="info-box aide-contenu hidden" id="aide-frais-doubleresidence">
+                  Si vous maintenez <strong>deux logements</strong> pour des raisons professionnelles (lieu de travail
+                  trop éloigné du domicile familial), vous pouvez déduire :<br><br>
+                  • Le loyer du logement secondaire<br>
+                  • Les frais de transport entre les deux résidences<br>
+                  • Les repas supplémentaires liés à cet éloignement
+                </div>
+                <div class="input-euro">
+                  <input type="number" id="frais_doubleresidence_d1" min="0" step="1" placeholder="0" />
+                </div>
+              </div>
+              <div class="field-group">
+                <label for="frais_teletravail_d1">
+                  Jours de télétravail
+                  <button type="button" class="btn-aide" data-cible="aide-frais-teletravail">Explications</button>
+                </label>
+                <div class="info-box aide-contenu hidden" id="aide-frais-teletravail">
+                  Nombre de jours travaillés depuis votre domicile en 2025.<br><br>
+                  L'administration applique un forfait de <strong>2,70 € par jour</strong> pour couvrir vos frais
+                  d'électricité, connexion et bureau à domicile.<br><br>
+                  Ces jours sont automatiquement <strong>déduits de vos jours de trajet</strong> domicile-travail.
+                </div>
+                <input type="number" id="frais_teletravail_d1" min="0" max="365" step="1" placeholder="0" />
+              </div>
+            </div>
+            <div class="field-group">
+              <label for="frais_syndicat_d1">
+                Cotisations syndicales
+                <button type="button" class="btn-aide" data-cible="aide-frais-syndicat">Explications</button>
+              </label>
+              <div class="info-box aide-contenu hidden" id="aide-frais-syndicat">
+                Si vous déclarez des <strong>frais réels</strong>, vos cotisations syndicales peuvent être incluses ici
+                comme charge professionnelle.<br><br>
+                ⚠️ Ne pas renseigner à la fois ici <strong>et</strong> dans la section crédits d'impôt à l'étape
+                suivante — choisissez l'un ou l'autre.
+              </div>
+              <div class="input-euro">
+                <input type="number" id="frais_syndicat_d1" min="0" step="1" placeholder="0" />
+              </div>
+            </div>
+          </details>
+        </fieldset>
+
+        <!-- Déclarant 2 frais -->
+        <fieldset id="bloc-frais-conjoint" class="declarant-bloc hidden">
+          <legend>Déclarant 2 — Frais</legend>
+
+          <div class="field-group">
+            <label class="field-label">Frais kilométriques ?</label>
+            <div class="radio-group">
+              <label><input type="radio" name="utiliseKm_d2" value="non" checked /> Non</label>
+              <label><input type="radio" name="utiliseKm_d2" value="oui" /> Oui</label>
+            </div>
+          </div>
+
+          <div id="bloc-km-d2" class="sous-bloc hidden">
+            <div class="field-row">
+              <div class="field-group">
+                <label for="km_type_d2">Type de véhicule</label>
+                <select id="km_type_d2">
+                  <option value="thermique">Thermique</option>
+                  <option value="electrique">Électrique (+20%)</option>
+                  <option value="moto">Moto / Scooter</option>
+                  <option value="velo">Vélo</option>
+                </select>
+              </div>
+              <div class="field-group">
+                <label for="km_cv_d2">Puissance fiscale (CV)</label>
+                <input type="number" id="km_cv_d2" min="1" max="99" step="1" placeholder="5" />
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field-group">
+                <label for="km_aller_d2">Distance aller domicile-travail (km)</label>
+                <input type="number" id="km_aller_d2" min="0" step="0.5" placeholder="0" />
+              </div>
+              <div class="field-group">
+                <label for="km_jours_d2">Nombre de jours travaillés</label>
+                <input type="number" id="km_jours_d2" min="0" max="365" step="1" placeholder="0" />
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field-group">
+                <label for="km_peages_d2">Péages</label>
+                <div class="input-euro">
+                  <input type="number" id="km_peages_d2" min="0" step="1" placeholder="0" />
+                </div>
+              </div>
+              <div class="field-group">
+                <label for="km_parking_d2">Parking</label>
+                <div class="input-euro">
+                  <input type="number" id="km_parking_d2" min="0" step="1" placeholder="0" />
+                </div>
+              </div>
+            </div>
+            <div class="field-group">
+              <label for="km_pros_d2">Km professionnels supplémentaires</label>
+              <input type="number" id="km_pros_d2" min="0" step="1" placeholder="0" />
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Frais de repas ?</label>
+            <div class="radio-group">
+              <label><input type="radio" name="utiliseRepas_d2" value="non" checked /> Non</label>
+              <label><input type="radio" name="utiliseRepas_d2" value="oui" /> Oui</label>
+            </div>
+          </div>
+
+          <div id="bloc-repas-d2" class="sous-bloc hidden">
+            <div class="field-group">
+              <label class="field-label">Justificatifs disponibles ?</label>
+              <div class="radio-group">
+                <label><input type="radio" name="repas_justificatifs_d2" value="non" checked /> Non (forfait)</label>
+                <label><input type="radio" name="repas_justificatifs_d2" value="oui" /> Oui</label>
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field-group">
+                <label for="repas_cout_d2">Coût repas par jour</label>
+                <div class="input-euro">
+                  <input type="number" id="repas_cout_d2" min="0" step="0.01" value="5.45" readonly />
+                </div>
+              </div>
+              <div class="field-group">
+                <label for="repas_patronal_d2">Part patronale ticket-restaurant</label>
+                <div class="input-euro">
+                  <input type="number" id="repas_patronal_d2" min="0" step="0.01" placeholder="0" />
+                </div>
+              </div>
+            </div>
+            <div class="field-group">
+              <label for="repas_jours_d2">Nombre de jours concernés</label>
+              <input type="number" id="repas_jours_d2" min="0" max="365" step="1" placeholder="0" />
+            </div>
+          </div>
+
+          <details class="sous-bloc-details">
+            <summary>Autres frais professionnels</summary>
+            <div class="field-row">
+              <div class="field-group">
+                <label for="frais_materiel_d2">Matériel / Équipement</label>
+                <div class="input-euro">
+                  <input type="number" id="frais_materiel_d2" min="0" step="1" placeholder="0" />
+                </div>
+              </div>
+              <div class="field-group">
+                <label for="frais_formation_d2">Formation</label>
+                <div class="input-euro">
+                  <input type="number" id="frais_formation_d2" min="0" step="1" placeholder="0" />
+                </div>
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field-group">
+                <label for="frais_vetements_d2">Vêtements professionnels</label>
+                <div class="input-euro">
+                  <input type="number" id="frais_vetements_d2" min="0" step="1" placeholder="0" />
+                </div>
+              </div>
+              <div class="field-group">
+                <label for="frais_documentation_d2">Documentation</label>
+                <div class="input-euro">
+                  <input type="number" id="frais_documentation_d2" min="0" step="1" placeholder="0" />
+                </div>
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field-group">
+                <label for="frais_doubleresidence_d2">Double résidence</label>
+                <div class="input-euro">
+                  <input type="number" id="frais_doubleresidence_d2" min="0" step="1" placeholder="0" />
+                </div>
+              </div>
+              <div class="field-group">
+                <label for="frais_teletravail_d2">Jours de télétravail</label>
+                <input type="number" id="frais_teletravail_d2" min="0" max="365" step="1" placeholder="0" />
+              </div>
+            </div>
+            <div class="field-group">
+              <label for="frais_syndicat_d2">Cotisations syndicales</label>
+              <div class="input-euro">
+                <input type="number" id="frais_syndicat_d2" min="0" step="1" placeholder="0" />
+              </div>
+            </div>
+          </details>
+        </fieldset>
+
+        <div class="nav-buttons">
+          <button type="button" class="btn btn-ghost btn-precedent">← Précédent</button>
+          <button type="button" class="btn btn-primary btn-suivant">Suivant →</button>
+        </div>
+      </section>
+
+      <!-- ─────────────────────────────────────────────
+         ÉTAPE 4 — CRÉDITS & RÉDUCTIONS
+    ───────────────────────────────────────────── -->
+      <section id="etape-credits" class="etape hidden">
+        <h2 class="etape-titre">💳 Crédits et réductions d'impôt</h2>
+
+        <!-- Garde enfants -->
+        <details class="credits-section" id="details-garde" open style="display:none">
+          <summary>
+            Garde d'enfant(s) hors domicile
+            <button type="button" class="btn-aide" data-cible="aide-garde">Explications</button>
+          </summary>
+          <div class="info-box aide-contenu hidden" id="aide-garde">
+            <strong>Crédit d'impôt de 50%</strong> des dépenses engagées pour la garde d'un enfant de <strong>moins de 6
+              ans</strong> hors de votre domicile : crèche, assistante maternelle, garderie périscolaire…<br><br>
+            Plafond : <strong>3 500 € de dépenses par enfant</strong>, soit 1 750 € de crédit maximum par
+            enfant.<br><br>
+            Indiquez uniquement les sommes <strong>réellement payées</strong>, déduction faite des aides reçues (CAF,
+            chèque emploi service…).
+          </div>
+          <div id="liste-gardes">
+            <p class="hint">Aucun enfant déclaré à l'étape 1.</p>
+          </div>
+        </details>
+
+        <!-- Services à domicile -->
+        <details class="credits-section">
+          <summary>
+            Services à domicile
+          </summary>
+          <button type="button" class="btn-aide" data-cible="aide-domicile">Explications</button>
+          <div class="info-box aide-contenu hidden" id="aide-domicile">
+            <strong>Crédit d'impôt de 50%</strong> sur les dépenses pour des services réalisés à votre domicile.<br><br>
+            Plafond général : <strong>12 000 €</strong> de dépenses (majoré si enfants à charge, personne de +65 ans ou
+            handicapée dans le foyer).<br><br>
+            Indiquez uniquement les sommes <strong>réellement payées</strong>, déduction faite des aides reçues (CESU
+            préfinancé, APA…).
+          </div>
+          <div class="field-row">
+            <div class="field-group">
+              <label for="dom_menage">
+                Ménage / Repassage
+                <button type="button" class="btn-aide" data-cible="aide-dom-menage">Explications</button>
+              </label>
+              <div class="info-box aide-contenu hidden" id="aide-dom-menage">
+                Dépenses pour une <strong>aide ménagère</strong> intervenant chez vous : nettoyage, repassage,
+                rangement…<br><br>
+                Que ce soit via un <strong>particulier employeur direct</strong> (CESU) ou une entreprise de services à
+                domicile agréée, les deux sont éligibles.
+              </div>
+              <div class="input-euro">
+                <input type="number" id="dom_menage" min="0" step="1" placeholder="0" />
+              </div>
+            </div>
+            <div class="field-group">
+              <label for="dom_jardinage">Jardinage</label>
+              <div class="input-euro">
+                <input type="number" id="dom_jardinage" min="0" step="1" placeholder="0" />
+              </div>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field-group">
+              <label for="dom_soutien">
+                Soutien scolaire
+                <button type="button" class="btn-aide" data-cible="aide-dom-soutien">Explications</button>
+              </label>
+              <div class="info-box aide-contenu hidden" id="aide-dom-soutien">
+                Cours particuliers ou soutien scolaire dispensés <strong>à votre domicile</strong>.<br><br>
+                ⚠️ Les cours donnés dans un <strong>centre de soutien scolaire ou en ligne</strong> ne sont pas
+                éligibles à ce crédit — uniquement les interventions à domicile.
+              </div>
+              <div class="input-euro">
+                <input type="number" id="dom_soutien" min="0" step="1" placeholder="0" />
+              </div>
+            </div>
+            <div class="field-group">
+              <label for="dom_info">
+                Assistance informatique
+                <button type="button" class="btn-aide" data-cible="aide-dom-info">Explications</button>
+              </label>
+              <div class="info-box aide-contenu hidden" id="aide-dom-info">
+                Aide à l'utilisation de l'informatique et d'Internet <strong>à votre domicile</strong> : installation,
+                dépannage, formation aux outils numériques.<br><br>
+                ⚠️ Plafond spécifique : <strong>500 € par an</strong> pour cette catégorie uniquement.
+              </div>
+              <div class="input-euro">
+                <input type="number" id="dom_info" min="0" step="1" placeholder="0" />
+              </div>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field-group">
+              <label for="dom_dependance">
+                Aide personne âgée / dépendante
+                <button type="button" class="btn-aide" data-cible="aide-dom-dependance">Explications</button>
+              </label>
+              <div class="info-box aide-contenu hidden" id="aide-dom-dependance">
+                Frais d'aide à domicile pour une <strong>personne âgée ou handicapée</strong> vivant dans votre
+                foyer.<br><br>
+                Si la personne a <strong>plus de 65 ans</strong> ou est invalide, cochez "Oui" à la question suivante
+                pour bénéficier d'un <strong>plafond majoré</strong>.
+              </div>
+              <div class="input-euro">
+                <input type="number" id="dom_dependance" min="0" step="1" placeholder="0" />
+              </div>
+            </div>
+            <div class="field-group">
+              <label for="dom_bricolage">
+                Petit bricolage
+                <button type="button" class="btn-aide" data-cible="aide-dom-bricolage">Explications</button>
+              </label>
+              <div class="info-box aide-contenu hidden" id="aide-dom-bricolage">
+                Petits travaux de bricolage réalisés par un professionnel <strong>chez vous</strong> : petites
+                réparations, fixations, montage de meubles…<br><br>
+                ⚠️ Plafond très limité : <strong>500 € par an</strong>. Les gros travaux de rénovation relèvent d'autres
+                dispositifs (MaPrimeRénov', etc.).
+              </div>
+              <div class="input-euro">
+                <input type="number" id="dom_bricolage" min="0" step="1" placeholder="0" />
+              </div>
+            </div>
+          </div>
+          <div class="field-group">
+            <label class="field-label">
+              Personne du foyer de + de 65 ans ?
+              <button type="button" class="btn-aide" data-cible="aide-dom-65ans">Explications</button>
+            </label>
+            <div class="info-box aide-contenu hidden" id="aide-dom-65ans">
+              Si vous ou votre conjoint avez <strong>plus de 65 ans</strong>, le plafond des dépenses de services à
+              domicile est <strong>majoré de 3 000 €</strong>, passant de 12 000 € à 15 000 €.
+            </div>
+            <div class="radio-group">
+              <label><input type="radio" name="dom_plus65" value="non" checked /> Non</label>
+              <label><input type="radio" name="dom_plus65" value="oui" /> Oui</label>
+            </div>
+          </div>
+        </details>
+
+        <!-- Dons -->
+        <details class="credits-section">
+          <summary>Dons</summary>
+          <div class="field-row">
+            <div class="field-group">
+              <label for="dons_aide">
+                Aide aux personnes en difficulté
+                <button type="button" class="btn-aide" data-cible="aide-dons-aide">Explications</button>
+              </label>
+              <div class="info-box aide-contenu hidden" id="aide-dons-aide">
+                Dons à des associations aidant les personnes en difficulté : <strong>Restos du Cœur, Croix-Rouge,
+                  Secours Populaire, Secours Catholique, Abbé Pierre…</strong><br><br>
+                Ces dons bénéficient d'une <strong>réduction d'impôt de 75%</strong> dans la limite de <strong>1 000
+                  €</strong> de dons, puis 66% au-delà.
+              </div>
+              <div class="input-euro">
+                <input type="number" id="dons_aide" min="0" step="1" placeholder="0" />
+              </div>
+            </div>
+            <div class="field-group">
+              <label for="dons_interet">
+                Intérêt général / Culture
+                <button type="button" class="btn-aide" data-cible="aide-dons-interet">Explications</button>
+              </label>
+              <div class="info-box aide-contenu hidden" id="aide-dons-interet">
+                Dons à des associations ou fondations <strong>reconnues d'utilité publique</strong> : culture, sport,
+                environnement, éducation…<br><br>
+                <strong>Réduction d'impôt de 66%</strong> dans la limite de 20% de votre revenu net imposable.
+              </div>
+              <div class="input-euro">
+                <input type="number" id="dons_interet" min="0" step="1" placeholder="0" />
+              </div>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field-group">
+              <label for="dons_partis">
+                Partis politiques
+                <button type="button" class="btn-aide" data-cible="aide-dons-partis">Explications</button>
+              </label>
+              <div class="info-box aide-contenu hidden" id="aide-dons-partis">
+                Dons ou cotisations versés à des <strong>partis et groupements politiques</strong> légalement
+                constitués.<br><br>
+                <strong>Réduction d'impôt de 66%</strong>, plafonnée à <strong>15 000 € de dons par an</strong> et par
+                personne.
+              </div>
+              <div class="input-euro">
+                <input type="number" id="dons_partis" min="0" step="1" placeholder="0" />
+              </div>
+            </div>
+            <div class="field-group">
+              <label for="dons_recherche">
+                Recherche
+                <button type="button" class="btn-aide" data-cible="aide-dons-recherche">Explications</button>
+              </label>
+              <div class="info-box aide-contenu hidden" id="aide-dons-recherche">
+                Dons à des organismes de <strong>recherche publique ou privée agréés</strong> : universités, Institut
+                Pasteur, Institut Curie, CNRS…<br><br>
+                <strong>Réduction d'impôt de 66%</strong> dans la limite de 20% du revenu net imposable.
+              </div>
+              <div class="input-euro">
+                <input type="number" id="dons_recherche" min="0" step="1" placeholder="0" />
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <!-- Scolarité -->
+        <details class="credits-section" id="details-scolarite" style="display:none">
+          <summary>🎓 Réduction scolarité</summary>
+          <div id="bloc-scolarite-dynamique">
+            <p class="hint">Aucun enfant déclaré à l'étape 1.</p>
+          </div>
+        </details>
+
+        <!-- Syndicat -->
+        <details class="credits-section">
+          <summary>
+            Cotisations syndicales (si non incluses dans frais réels)
+          </summary>
+          <button type="button" class="btn-aide" data-cible="aide-syndicat">Explications</button>
+          <div class="info-box aide-contenu hidden" id="aide-syndicat">
+            Si vous avez gardé la <strong>déduction forfaitaire de 10%</strong> (option par défaut), vos cotisations
+            syndicales ouvrent droit à un <strong>crédit d'impôt de 66%</strong> du montant versé.<br><br>
+            ⚠️ Si vous avez déclaré des <strong>frais réels</strong> à l'étape précédente, ne renseignez pas ce champ —
+            vos cotisations y sont déjà incluses.
+          </div>
+          <div class="field-group">
+            <label for="syndicat_montant">Montant annuel</label>
+            <div class="input-euro">
+              <input type="number" id="syndicat_montant" min="0" step="1" placeholder="0" />
+            </div>
+          </div>
+        </details>
+
+        <!-- EHPAD -->
+        <details class="credits-section">
+          <summary>
+            EHPAD
+          </summary>
+          <label for="ehpad_depenses">
+            Dépenses d'hébergement €
+            <button type="button" class="btn-aide" data-cible="aide-ehpad">Explications</button>
+          </label>
+          <div class="info-box aide-contenu hidden" id="aide-ehpad">
+            Frais d'hébergement dans un <strong>EHPAD ou une résidence autonomie</strong> : <strong>réduction d'impôt de
+              25%</strong>.<br><br>
+            Plafond : <strong>10 000 € par personne hébergée</strong> → réduction maximale de 2 500 € par
+            personne.<br><br>
+            Indiquez le total annuel payé (hébergement + dépendance), <strong>net des aides reçues</strong> (APA, APL…).
+          </div>
+          <div class="field-row">
+            <div class="field-group">
+              <label for="ehpad_depenses">Dépenses d'hébergement</label>
+              <div class="input-euro">
+                <input type="number" id="ehpad_depenses" min="0" step="1" placeholder="0" />
+              </div>
+            </div>
+            <div class="field-group">
+              <label for="ehpad_nb">
+                Nombre de personnes concernées
+                <button type="button" class="btn-aide" data-cible="aide-ehpad-nb">Explications</button>
+              </label>
+              <div class="info-box aide-contenu hidden" id="aide-ehpad-nb">
+                Indiquez le nombre de personnes de votre foyer fiscal hébergées en EHPAD : vous-même, votre conjoint, ou
+                un ascendant fiscalement à votre charge.<br><br>
+                Le plafond de <strong>10 000 €</strong> s'applique <strong>par personne</strong> : deux personnes = 20
+                000 € de plafond.
+              </div>
+              <input type="number" id="ehpad_nb" min="1" max="10" step="1" placeholder="1" />
+            </div>
+          </div>
+        </details>
+
+        <div class="nav-buttons">
+          <button type="button" class="btn btn-ghost btn-precedent">← Précédent</button>
+          <button type="button" class="btn btn-primary btn-suivant">Suivant →</button>
+        </div>
+      </section>
+
+      <!-- ─────────────────────────────────────────────
+         ÉTAPE 5 — PREMIÈRE ANNÉE D'UNION (couple)
+    ───────────────────────────────────────────── -->
+      <section id="etape-union" class="etape hidden">
+        <h2 class="etape-titre">💍 Première année de mariage / PACS ?</h2>
+
+        <div class="field-group">
+          <label class="field-label">
+            Est-ce la première année de votre union ?
+            <button type="button" class="btn-aide" data-cible="aide-premiereannee">Explications</button>
+          </label>
+          <div class="info-box aide-contenu hidden" id="aide-premiereannee">
+            L'année de votre mariage ou PACS, vous avez le choix entre :<br><br>
+            • <strong>Une déclaration commune</strong> : vos revenus sont fusionnés — avantageux si vos revenus sont
+            très différents<br>
+            • <strong>Deux déclarations séparées</strong> : chacun déclare ses revenus de l'année entière — parfois
+            préférable si vos revenus sont proches<br><br>
+            Le simulateur peut <strong>comparer les deux automatiquement</strong> et vous indiquer laquelle est la plus
+            avantageuse.
+          </div>
+          <div class="radio-group">
+            <label><input type="radio" name="premiereAnneeUnion" value="non" checked /> Non</label>
+            <label><input type="radio" name="premiereAnneeUnion" value="oui" /> Oui</label>
+          </div>
+        </div>
+
+        <div id="bloc-mode-declaration" class="sous-bloc hidden">
+          <div class="info-box">
+            ℹ️ L'année du mariage ou du PACS, vous pouvez opter pour une déclaration commune ou deux déclarations
+            séparées.
+            Le simulateur peut comparer les deux options automatiquement.
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Mode de déclaration souhaité</label>
+            <div class="radio-group vertical">
+              <label>
+                <input type="radio" name="modeDeclaration" value="comparatif" checked />
+                <strong>Comparatif automatique</strong> — Je veux voir quelle option est la plus avantageuse
+              </label>
+              <label>
+                <input type="radio" name="modeDeclaration" value="commune" />
+                <strong>Commune uniquement</strong>
+              </label>
+              <label>
+                <input type="radio" name="modeDeclaration" value="separee" />
+                <strong>Séparée uniquement</strong>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div id="bloc-repartition-communs" class="sous-bloc hidden">
+
+          <div class="info-box">
+            ℹ️ <strong>Cette section ne concerne que les revenus détenus en commun</strong> (ex : loyers d'un bien en
+            indivision, revenus d'un compte-titres joint, bénéfices d'une SCI commune…). <br><br>
+            Si vous n'avez <strong>pas de revenus communs</strong>, laissez 0,5 / 0,5 — cela n'aura aucun impact sur
+            votre simulation.
+          </div>
+
+          <h3 style="margin-bottom:8px; font-size:.95rem; color:var(--bleu-moyen);">
+            Répartition des revenus communs entre les deux déclarations séparées
+          </h3>
+          <p class="hint">
+            Indiquez la part attribuée au Déclarant 1 (entre 0 et 1). Le reste ira automatiquement au Déclarant 2.<br>
+            Exemple : 0,6 signifie 60% pour le Déclarant 1, 40% pour le Déclarant 2.
+          </p>
+
+          <div class="field-row">
+            <div class="field-group">
+              <label for="repartition_revenus">Part des revenus communs — Déclarant 1</label>
+              <input type="number" id="repartition_revenus" min="0" max="1" step="0.01" value="0.5" />
+            </div>
+            <div class="field-group">
+              <label for="repartition_charges">Part des charges communes — Déclarant 1</label>
+              <input type="number" id="repartition_charges" min="0" max="1" step="0.01" value="0.5" />
+            </div>
+          </div>
+
+        </div>
+
+        <div class="nav-buttons">
+          <button type="button" class="btn btn-ghost btn-precedent">← Précédent</button>
+          <button type="button" class="btn btn-primary btn-suivant">Suivant →</button>
+        </div>
+      </section>
+
+      <!-- ─────────────────────────────────────────────
+         ÉTAPE 6 — RÉSULTATS
+    ───────────────────────────────────────────── -->
+      <section id="etape-resultats" class="etape hidden">
+        <h2 class="etape-titre">📊 Résultats de la simulation</h2>
+
+        <div class="nav-buttons top-buttons">
+          <button type="button" class="btn btn-ghost btn-precedent">← Modifier</button>
+          <button type="button" id="btn-simuler" class="btn btn-primary">🔄 Calculer</button>
+        </div>
+
+        <div id="zone-resultats" class="zone-resultats">
+          <p class="hint-resultats">Cliquez sur "Calculer" pour lancer la simulation.</p>
+        </div>
+
+        <div class="nav-buttons bottom-buttons">
+          <button type="button" id="btn-reinitialiser" class="btn btn-danger">🗑️ Recommencer</button>
+          <button type="button" id="btn-simuler-bas" class="btn btn-primary"
+            onclick="document.getElementById('btn-simuler').click()">🔄 Recalculer</button>
+        </div>
+      </section>
+
+    </form><!-- fin #simulateur -->
+
+    <!-- ===== PIED DE PAGE ===== -->
+    <footer class="app-footer">
+      <p>Simulation indicative — Résultats à vérifier sur <a href="https://www.impots.gouv.fr" target="_blank"
+          rel="noopener">impots.gouv.fr</a></p>
+      <p>Barèmes 2026 (revenus 2025) — v2026.04</p>
+    </footer>
+
+  </div><!-- fin .app-wrapper -->
+
+  <script type="module" src="./app.js"></script>
+</body>
+
+</html>
